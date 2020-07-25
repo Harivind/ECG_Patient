@@ -11,8 +11,8 @@ int length;
 
 class ChatScreen extends StatefulWidget {
   static String id = "chatScreen";
-  final int patientIndex;
-  const ChatScreen({@required this.patientIndex});
+  final String doctorID;
+  const ChatScreen({@required this.doctorID});
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -27,7 +27,7 @@ class _ChatScreenState extends State<ChatScreen> {
       appBar: AppBar(
         leading: null,
         title: Text(
-            Provider.of<Data>(context).patients[widget.patientIndex]['name']),
+            "Dr. ${Provider.of<Data>(context).currentPatient['doctorID'][widget.doctorID]}"),
       ),
       body: Stack(
         children: [
@@ -43,8 +43,9 @@ class _ChatScreenState extends State<ChatScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               MessagesStream(
-                patientID: Provider.of<Data>(context)
-                    .patients[widget.patientIndex]['patientID'],
+                doctorID: widget.doctorID,
+                patientID:
+                    Provider.of<Data>(context).currentPatient['patientID'],
               ),
               Container(
                 decoration: kMessageContainerDecoration,
@@ -66,7 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
                         _firestore
                             .collection(
-                                '/messages/${Provider.of<Data>(context, listen: false).currentUser.uid}/${Provider.of<Data>(context, listen: false).patients[widget.patientIndex]['patientID']}')
+                                '/messages/${widget.doctorID}/${Provider.of<Data>(context, listen: false).currentPatient['patientID']}')
                             .add(
                           {
                             'index': length,
@@ -96,8 +97,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
 class MessagesStream extends StatelessWidget {
   final String patientID;
+  final String doctorID;
 
-  const MessagesStream({@required this.patientID});
+  const MessagesStream({@required this.patientID, @required this.doctorID});
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
@@ -138,10 +140,8 @@ class MessagesStream extends StatelessWidget {
           ),
         );
       },
-      stream: _firestore
-          .collection(
-              "/messages/${Provider.of<Data>(context).currentUser.uid}/$patientID")
-          .snapshots(),
+      stream:
+          _firestore.collection("/messages/$doctorID/$patientID").snapshots(),
     );
   }
 }

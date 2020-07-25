@@ -107,7 +107,8 @@ class AddPatient extends StatelessWidget {
                                     .document(doctor.data['patientID'])
                                     .setData({
                                   'doctorID': {
-                                    doctor.data['doctorID'].toString(): true
+                                    doctor.data['doctorID'].toString():
+                                        doctor.data['doctorName']
                                   }
                                 }, merge: true);
                                 _firestore

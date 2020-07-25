@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:patient/constants.dart';
 import 'package:patient/models/data.dart';
+import 'package:patient/screens/chat_screen.dart';
 import 'package:patient/screens/grant_access.dart';
 import 'package:patient/widgets/custom_bottom_navigation.dart';
 import 'package:patient/widgets/ecg_graph.dart';
@@ -193,7 +194,77 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      onPress: () {},
+                      onPress: () {
+                        showModalBottomSheet<dynamic>(
+                          isScrollControlled: true,
+                          context: context,
+                          builder: (context) => Container(
+                            color: Color(0xFF757575),
+                            child: Container(
+                              height: MediaQuery.of(context).size.height * 0.7,
+                              padding: EdgeInsets.all(20.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.only(
+                                  topLeft: Radius.circular(20.0),
+                                  topRight: Radius.circular(20.0),
+                                ),
+                              ),
+                              child: ListView.builder(
+                                itemBuilder: (context, index) {
+                                  return Column(
+                                    children: [
+                                      Text(
+                                        'Select Doctor',
+                                        style: TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.indigo,
+                                        ),
+                                      ),
+                                      ListTile(
+                                        leading: Icon(
+                                          Icons.person,
+                                          size: 45,
+                                          color: Colors.black,
+                                        ),
+                                        title: Text(
+                                          "Dr. ${Provider.of<Data>(context).currentPatient['doctorID'][Provider.of<Data>(context).currentPatient['doctorID'].keys.elementAt(index)]}",
+                                          style: TextStyle(fontSize: 20),
+                                        ),
+                                        trailing: Icon(
+                                          Icons.chat,
+                                          color: Color(0xFFFF4081),
+                                          size: 35,
+                                        ),
+                                        onTap: () {
+                                          Navigator.pop(context);
+                                          Navigator.push(context,
+                                              MaterialPageRoute(
+                                            builder: (context) {
+                                              return ChatScreen(
+                                                doctorID: Provider.of<Data>(
+                                                        context)
+                                                    .currentPatient['doctorID']
+                                                    .keys
+                                                    .elementAt(index),
+                                              );
+                                            },
+                                          ));
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                                itemCount: Provider.of<Data>(context)
+                                    .currentPatient['doctorID']
+                                    .keys
+                                    .length,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -231,6 +302,19 @@ class HomeScreen extends StatelessWidget {
         ),
         bottomNavigationBar: CustomBottomNavigationBar(),
       ),
+    );
+  }
+}
+
+class SelectDoctor extends StatelessWidget {
+  const SelectDoctor({
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 200,
     );
   }
 }
