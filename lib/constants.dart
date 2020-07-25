@@ -30,11 +30,11 @@ const purpleGradient = LinearGradient(
 const greetingTitleStyle = TextStyle(
   fontSize: 36,
   fontWeight: FontWeight.w400,
-  color: Colors.white,
+  color: Colors.black,
   shadows: [
     Shadow(
       blurRadius: 2,
-      color: Colors.indigo,
+      color: Colors.black26,
     )
   ],
 );

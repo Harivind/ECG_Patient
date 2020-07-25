@@ -30,7 +30,7 @@ class _RegistrationScreenState extends State<RegistrationScreen>
     final pickedFile = await picker.getImage(
       source: ImageSource.values[source],
       preferredCameraDevice: CameraDevice.front,
-      imageQuality: 50,
+      imageQuality: 75,
       maxWidth: 300.0,
       maxHeight: 300.0,
     );
@@ -189,7 +189,7 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                       doctorID = value;
                     },
                     decoration: kTextFieldDecoration.copyWith(
-                      hintText: "Enter your Doctor ID",
+                      hintText: "Enter your Patient ID",
                       prefixIcon: Padding(
                         padding: const EdgeInsets.only(left: 20),
                         child: Icon(Icons.local_hospital),
@@ -261,7 +261,7 @@ class _RegistrationScreenState extends State<RegistrationScreen>
                           email: email,
                           password: password,
                           context: context,
-                          doctorID: doctorID,
+                          patientID: doctorID,
                           name: name,
                           image: image ?? null,
                         );

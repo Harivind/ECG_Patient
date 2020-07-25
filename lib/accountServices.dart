@@ -18,13 +18,24 @@ class AccountService {
     @required BuildContext context,
   }) async {
     try {
+      final QuerySnapshot result = await Firestore.instance
+          .collection('patients')
+          .where('email', isEqualTo: email)
+          .getDocuments();
+
+      final List<DocumentSnapshot> documents = result.documents;
+      print("length" + documents.length.toString());
+      if (documents.length == 0) {
+        throw "Invalid Credentials";
+      }
+
       final user = await _auth.signInWithEmailAndPassword(
         email: email,
         password: pass,
       );
       if (user != null) {
         Provider.of<Data>(context, listen: false).addCurrentUser(user.user);
-        Provider.of<Data>(context, listen: false).getPatients();
+        Provider.of<Data>(context, listen: false).getPatientDetails();
         Navigator.pushNamedAndRemoveUntil(
           context,
           HomeScreen.id,
@@ -40,21 +51,21 @@ class AccountService {
       {@required String email,
       @required String password,
       @required String name,
-      @required String doctorID,
+      @required String patientID,
       File image,
       @required BuildContext context}) async {
     String imageURL = '';
 
     try {
       final QuerySnapshot result = await Firestore.instance
-          .collection('doctors')
-          .where('doctorID', isEqualTo: doctorID)
+          .collection('patients')
+          .where('patientID', isEqualTo: patientID)
           .getDocuments();
 
       final List<DocumentSnapshot> documents = result.documents;
       print("length" + documents.length.toString());
       if (documents.length > 0) {
-        throw "Doctor ID Already Exists";
+        throw "Patient ID Already Exists";
       }
 
       final newUser = await _auth.createUserWithEmailAndPassword(
@@ -65,28 +76,29 @@ class AccountService {
         if (image != null) {
           StorageReference storageReference = FirebaseStorage.instance
               .ref()
-              .child('doctor/${Path.basename(image.path)}');
+              .child('patient/${Path.basename(image.path)}');
           StorageUploadTask uploadTask = storageReference.putFile(image);
           await uploadTask.onComplete;
           print('File Uploaded');
           imageURL = await storageReference.getDownloadURL();
         }
-        Firestore.instance
-            .collection('doctors')
-            .document(newUser.user.uid)
-            .setData({
-          'doctorID': doctorID,
+        Firestore.instance.collection('patients').document(patientID).setData({
+          'patientID': patientID,
           'name': name,
           'photoUrl': imageURL,
           'email': email,
-          'patients': [],
-          'uid': newUser.user.uid
+          'doctorID': [],
+          'uid': newUser.user.uid,
+          'status': "Normal"
         });
         var userUpdateInfo = UserUpdateInfo();
         userUpdateInfo.photoUrl = imageURL;
         userUpdateInfo.displayName = name;
         await newUser.user.updateProfile(userUpdateInfo);
-        Provider.of<Data>(context, listen: false).addCurrentUser(newUser.user);
+
+        Provider.of<Data>(context, listen: false)
+            .addCurrentUser(await _auth.currentUser());
+        Provider.of<Data>(context, listen: false).getPatientDetails();
         Navigator.pushNamedAndRemoveUntil(
           context,
           HomeScreen.id,
