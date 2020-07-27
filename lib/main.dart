@@ -56,7 +56,7 @@ class MyApp extends StatelessWidget {
             LoginScreen.id: (context) => LoginScreen(),
             RegistrationScreen.id: (context) => RegistrationScreen(),
             HomeScreen.id: (context) => HomeScreen(),
-            AddPatient.id: (context) => AddPatient(),
+            AddDoctor.id: (context) => AddDoctor(),
             AccountScreen.id: (context) => AccountScreen(),
           },
         ),

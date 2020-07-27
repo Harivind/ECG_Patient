@@ -34,8 +34,8 @@ class AccountService {
         password: pass,
       );
       if (user != null) {
-        Provider.of<Data>(context, listen: false).addCurrentUser(user.user);
-        Provider.of<Data>(context, listen: false).getPatientDetails();
+        await Provider.of<Data>(context, listen: false)
+            .addCurrentUser(user.user);
         Navigator.pushNamedAndRemoveUntil(
           context,
           HomeScreen.id,
@@ -85,7 +85,7 @@ class AccountService {
         Firestore.instance.collection('patients').document(patientID).setData({
           'patientID': patientID,
           'name': name,
-          'photoUrl': imageURL,
+          'photoURL': imageURL,
           'email': email,
           'doctorID': [],
           'uid': newUser.user.uid,
@@ -98,7 +98,6 @@ class AccountService {
 
         Provider.of<Data>(context, listen: false)
             .addCurrentUser(await _auth.currentUser());
-        Provider.of<Data>(context, listen: false).getPatientDetails();
         Navigator.pushNamedAndRemoveUntil(
           context,
           HomeScreen.id,

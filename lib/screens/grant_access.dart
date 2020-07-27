@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 final _firestore = Firestore.instance;
 final TextEditingController patientIDTextcontroller = TextEditingController();
 
-class AddPatient extends StatelessWidget {
+class AddDoctor extends StatelessWidget {
   static String id = "grantAccessScreen";
 
   @override
@@ -205,7 +205,7 @@ class _SheetButtonState extends State<SheetButton> {
                   )
                   .where('doctorID',
                       isEqualTo: Provider.of<Data>(context, listen: false)
-                          .loggedIntUser
+                          .loggedInUser
                           .uid)
                   .getDocuments()
                   .then((value) {
@@ -246,7 +246,7 @@ class _SheetButtonState extends State<SheetButton> {
                   {
                     'patientID': patID,
                     'doctorID': Provider.of<Data>(context, listen: false)
-                        .loggedIntUser
+                        .loggedInUser
                         .uid,
                     'granted': false,
                   },

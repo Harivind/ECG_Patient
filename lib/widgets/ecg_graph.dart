@@ -4,12 +4,10 @@ import 'package:patient/models/data.dart';
 import 'package:provider/provider.dart';
 
 class EcgGraph extends StatelessWidget {
-  EcgGraph({
-    @required this.gradientColors,
-  });
-
-  final List<Color> gradientColors;
-
+  final List<Color> gradientColors = [
+    const Color(0xff23b6e6),
+    const Color(0xff02d39a),
+  ];
   @override
   Widget build(BuildContext context) {
     return Container(

@@ -1,30 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:patient/constants.dart';
 import 'package:patient/models/data.dart';
 import 'package:patient/screens/chat_screen.dart';
 import 'package:patient/screens/grant_access.dart';
+import 'package:patient/screens/visualize_screen.dart';
 import 'package:patient/widgets/custom_bottom_navigation.dart';
-import 'package:patient/widgets/ecg_graph.dart';
 import 'package:patient/widgets/resuable_card.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
   static String id = "homeScreen";
-  final List<Color> gradientColors = [
-    const Color(0xff23b6e6),
-    const Color(0xff02d39a),
-  ];
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (BuildContext context) {},
       child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            print('building');
-            Provider.of<Data>(context, listen: false).addPoint();
-          },
-        ),
         body: Column(
           children: [
             Stack(
@@ -53,17 +45,17 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text(
-                        'Welcome\n${Provider.of<Data>(context).loggedIntUser.displayName}',
+                        'Welcome\n${Provider.of<Data>(context).loggedInUser.displayName}',
                         style: greetingTitleStyle,
                       ),
                       Row(
                         children: [
                           Text(
-                            'ECG Connection: Offline',
+                            'ECG Connection: Online',
                             style: TextStyle(fontSize: 20),
                           ),
                           Switch(
-                            value: false,
+                            value: true,
                             onChanged: (value) {},
                           ),
                         ],
@@ -80,14 +72,14 @@ class HomeScreen extends StatelessWidget {
                       Container(
                         height: 80,
                         child: Provider.of<Data>(context, listen: false)
-                                    .loggedIntUser
+                                    .loggedInUser
                                     .photoUrl !=
                                 null
                             ? CircleAvatar(
                                 radius: 40,
                                 backgroundImage: NetworkImage(
                                   Provider.of<Data>(context, listen: false)
-                                      .loggedIntUser
+                                      .loggedInUser
                                       .photoUrl,
                                 ),
                               )
@@ -95,7 +87,7 @@ class HomeScreen extends StatelessWidget {
                                 radius: 50,
                                 child: Text(
                                   Provider.of<Data>(context, listen: false)
-                                      .loggedIntUser
+                                      .loggedInUser
                                       .displayName[0]
                                       .toUpperCase(),
                                   style: TextStyle(fontSize: 30),
@@ -108,49 +100,49 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             Expanded(
-              flex: 3,
+              flex: 2,
               child: ReusableCard(
-                  cardChild: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 20.0),
-                        child: EcgGraph(gradientColors: gradientColors),
+                cardChild: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(18.0),
+                        child: SvgPicture.asset(
+                          'assets/images/visualise_data.svg',
+                          semanticsLabel: 'Acme Logo',
+                          // height: 150,
+                        ),
                       ),
-                      Text('ECG Data',
-                          style: TextStyle(fontSize: 20),
-                          textAlign: TextAlign.center),
-                    ],
-                  ),
-                  onPress: null),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Visualize Data',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ],
+                ),
+                onPress: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return VisualizeScreen();
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
             Expanded(
               flex: 1,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  Expanded(
-                    child: ReusableCard(
-                      cardChild: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.insert_chart,
-                            size: 50,
-                            color: Colors.indigo,
-                            semanticLabel: "Visualize",
-                          ),
-                          Text(
-                            'Visualize \nData',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ],
-                      ),
-                      onPress: () {},
-                    ),
-                  ),
                   Expanded(
                     child: ReusableCard(
                       cardChild: Column(
@@ -172,7 +164,7 @@ class HomeScreen extends StatelessWidget {
                         ],
                       ),
                       onPress: () {
-                        Navigator.pushNamed(context, AddPatient.id);
+                        Navigator.pushNamed(context, AddDoctor.id);
                       },
                     ),
                   ),
@@ -284,7 +276,7 @@ class HomeScreen extends StatelessWidget {
                             Icons.notifications_active,
                             size: 45,
                             color: Colors.red,
-                            semanticLabel: "Notes",
+                            semanticLabel: "Emergency",
                           ),
                           Text(
                             'Emergency',
@@ -292,7 +284,12 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                      onPress: () {},
+                      onPress: () {
+                        // FlutterBeep.playSysSound(
+                        //     AndroidSoundIDs.TONE_SUP_ERROR);
+                        Provider.of<Data>(context, listen: false)
+                            .emergencyProtocol();
+                      },
                     ),
                   ),
                 ],
