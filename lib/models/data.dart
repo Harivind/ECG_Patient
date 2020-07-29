@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -9,9 +7,12 @@ import 'package:flutter_beep/flutter_beep.dart';
 import 'package:sms/sms.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 
+enum Status { other, normal, pvc, apc, pb }
+
 class Data extends ChangeNotifier {
   int i = 0;
   int j;
+
   Interpreter _interpreter;
   List<List<double>> pvcData = [
     [
@@ -37591,6 +37592,7 @@ class Data extends ChangeNotifier {
   ];
   FirebaseUser currentUser;
   List last10Prediction = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+  String anomalyDetected = 'Normal';
   dynamic currentPatient;
   List<FlSpot> ecgGraph = [
     FlSpot(0, 0),
@@ -37606,16 +37608,68 @@ class Data extends ChangeNotifier {
         normalData[i++ % 50][j % 370],
       ));
     }
-    var output = List(1 * 5).reshape([1, 5]);
-    print(pvcData[i % 50].reshape([1, 370, 1]));
+    List<List<dynamic>> output = List(1 * 5).reshape([1, 5]);
+    // print(pvcData[i % 50].reshape([1, 370, 1]));
     _interpreter.run(pvcData[i % 50].reshape([1, 370, 1]), output);
-    print(output.reshape([5]));
+
+    print(output[0]);
     last10Prediction.removeAt(0);
-    last10Prediction.add(2);
+    var maxPred = output[0].fold(output[0][0],
+        (previous, current) => previous > current ? previous : current);
+    last10Prediction.add(output[0].indexOf(maxPred));
+    print(last10Prediction);
+
+    if (getCurrentStatus() != 'Normal') {
+      Firestore.instance
+          .collection('patients')
+          .document(currentPatient['patientID'])
+          .updateData({'status': 'Emergency'});
+    } else {
+      Firestore.instance
+          .collection('patients')
+          .document(currentPatient['patientID'])
+          .updateData({'status': 'Normal'});
+    }
+    print('nnnnn');
+    Firestore.instance
+        .collection('patients/${currentPatient['patientID']}/ECG')
+        .add({
+      'normal': anomalyDetected == 'Normal' ? true : false,
+      'data': pvcData[i % 50],
+      'prediction': output[0],
+      'dateTime': DateTime.now().millisecondsSinceEpoch.toString(),
+      'currentStatus': anomalyDetected
+    });
     notifyListeners();
   }
 
+  String getCurrentStatus() {
+    int maxValue = 0;
+    Map<int, int> count = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+    for (var i in last10Prediction) {
+      count[i] = count[i] + 1;
+    }
+
+    count.forEach((key, value) {
+      if (value > maxValue) {
+        maxValue = value;
+        key == 1
+            ? anomalyDetected = "Others"
+            : key == 2
+                ? anomalyDetected = "Normal"
+                : key == 3
+                    ? anomalyDetected = "Premature ventricular contractions "
+                    : key == 4
+                        ? anomalyDetected = "Atrial premature complexes"
+                        : anomalyDetected = "Paced Beats";
+      }
+    });
+    return anomalyDetected;
+  }
+
   void addPVCPoint() {
+    print('pvc');
+
     ecgGraph = [
       FlSpot(0, 0),
     ];
@@ -37625,12 +37679,34 @@ class Data extends ChangeNotifier {
         pvcData[i++ % 50][j % 370],
       ));
     }
-    var output = List(1 * 5).reshape([1, 5]);
-
-    last10Prediction.removeAt(0);
-    last10Prediction.add(3);
+    List<List<dynamic>> output = List(1 * 5).reshape([1, 5]);
     _interpreter.run(pvcData[i % 50].reshape([1, 370, 1]), output);
+    last10Prediction.removeAt(0);
+    var maxPred = output[0].fold(output[0][0],
+        (previous, current) => previous > current ? previous : current);
+    last10Prediction.add(output[0].indexOf(maxPred) + 1);
+
     print(output);
+    print(last10Prediction);
+    if (getCurrentStatus() != 'Normal') {
+      Firestore.instance
+          .collection('patients')
+          .document(currentPatient['patientID'])
+          .updateData({'status': 'Emergency'});
+    } else {
+      Firestore.instance
+          .collection('patients')
+          .document(currentPatient['patientID'])
+          .updateData({'status': 'Normal'});
+    }
+    Firestore.instance
+        .collection('patients/${currentPatient['patientID']}/ECG')
+        .add({
+      'data': pvcData[i % 50],
+      'prediction': output[0],
+      'dateTime': DateTime.now().millisecondsSinceEpoch.toString(),
+      'currentStatus': anomalyDetected
+    });
     notifyListeners();
   }
 
@@ -37648,9 +37724,6 @@ class Data extends ChangeNotifier {
         .updateData({'status': 'Emergency'});
     FlutterBeep.beep();
   }
-  // UnmodifiableListView<dynamic> get patients {
-  //   return UnmodifiableListView(patients);
-  // }
 
   Future<void> addCurrentUser(FirebaseUser user) async {
     _interpreter = await Interpreter.fromAsset('model.tflite');

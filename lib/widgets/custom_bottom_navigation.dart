@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:patient/screens/account_screen.dart';
+import 'package:patient/screens/welcome_screen.dart';
 
 class CustomBottomNavigationBar extends StatefulWidget {
   @override
@@ -19,14 +19,15 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
           icon: Icon(Icons.home),
         ),
         BottomNavigationBarItem(
-          title: Text('Account'),
-          icon: Icon(Icons.person_outline),
+          title: Text('Log Out'),
+          icon: Icon(Icons.lock_outline),
         ),
       ],
       elevation: 0,
       onTap: (value) {
         if (value == 1) {
-          Navigator.pushNamed(context, AccountScreen.id);
+          Navigator.pushNamedAndRemoveUntil(
+              context, WelcomeScreen.id, (route) => false);
         }
         setState(() {
           selectedItem = value;
